@@ -25,7 +25,9 @@ CREATE TABLE partners (
 CREATE TABLE api_keys (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
   key TEXT NOT NULL UNIQUE,
+  key_hash TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   revoked BOOLEAN DEFAULT FALSE
 );
