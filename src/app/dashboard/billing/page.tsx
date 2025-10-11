@@ -1,15 +1,22 @@
 'use client'
 
+import { CreditCard } from 'lucide-react'
+
 export default function BillingPage() {
     return (
         <div className="p-8">
-            <div className="mb-8">
-                <h1 className="text-[28px] font-semibold text-[#0a2540] mb-2">
-                    Billing & Usage
-                </h1>
-                <p className="text-[15px] text-[#425466]">
-                    Track your API usage and manage your billing
-                </p>
+            <div className="mb-8 flex items-center gap-4 border-b border-[#e3e8ef] pb-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#635bff]/10 to-[#4f46e5]/10 flex items-center justify-center">
+                    <CreditCard className="w-6 h-6 text-[#4f46e5]" />
+                </div>
+                <div>
+                    <h1 className="text-[28px] font-semibold text-[#0a2540] mb-1">
+                        Billing & Usage
+                    </h1>
+                    <p className="text-[15px] text-[#425466]">
+                        Track your API usage and manage your billing
+                    </p>
+                </div>
             </div>
 
             {/* Current Plan */}

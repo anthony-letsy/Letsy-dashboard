@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { Settings } from 'lucide-react'
 
 export default function SettingsPage() {
     const [companyName, setCompanyName] = useState('')
@@ -93,13 +94,18 @@ export default function SettingsPage() {
 
     return (
         <div className="p-8">
-            <div className="mb-8">
-                <h1 className="text-[28px] font-semibold text-[#0a2540] mb-2">
-                    Settings
-                </h1>
-                <p className="text-[15px] text-[#425466]">
-                    Manage your account settings and preferences
-                </p>
+            <div className="mb-8 flex items-center gap-4 border-b border-[#e3e8ef] pb-6">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#ff6b6b]/10 to-[#ee5a52]/10 flex items-center justify-center">
+                    <Settings className="w-6 h-6 text-[#ff6b6b]" />
+                </div>
+                <div>
+                    <h1 className="text-[28px] font-semibold text-[#0a2540] mb-1">
+                        Settings
+                    </h1>
+                    <p className="text-[15px] text-[#425466]">
+                        Manage your account settings and preferences
+                    </p>
+                </div>
             </div>
 
             <div className="max-w-2xl">

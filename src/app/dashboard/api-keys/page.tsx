@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import bcrypt from 'bcryptjs'
+import { KeyRound } from 'lucide-react'
 
 type ApiKey = {
     id: string
@@ -19,6 +20,8 @@ export default function ApiKeysPage() {
     const [newKeyName, setNewKeyName] = useState('')
     const [showGenerateModal, setShowGenerateModal] = useState(false)
     const [newlyGeneratedKey, setNewlyGeneratedKey] = useState<string | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 10
 
     useEffect(() => {
         fetchApiKeys()
@@ -104,16 +107,27 @@ export default function ApiKeysPage() {
         setNewlyGeneratedKey(null)
     }
 
+    // Pagination calculations
+    const totalPages = Math.ceil(apiKeys.length / itemsPerPage)
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const currentItems = apiKeys.slice(startIndex, endIndex)
+
     return (
         <div className="p-8">
-            <div className="mb-8 flex items-center justify-between">
-                <div>
-                    <h1 className="text-[28px] font-semibold text-[#0a2540] mb-2">
-                        API Keys
-                    </h1>
-                    <p className="text-[15px] text-[#425466]">
-                        Manage your API keys for integrating with Letsy
-                    </p>
+            <div className="mb-8 flex items-center justify-between border-b border-[#e3e8ef] pb-6">
+                <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-[#635bff]/10 to-[#4f46e5]/10 flex items-center justify-center">
+                        <KeyRound className="w-6 h-6 text-[#635bff]" />
+                    </div>
+                    <div>
+                        <h1 className="text-[28px] font-semibold text-[#0a2540] mb-1">
+                            API Keys
+                        </h1>
+                        <p className="text-[15px] text-[#425466]">
+                            Manage your API keys for integrating with Letsy
+                        </p>
+                    </div>
                 </div>
                 <button
                     onClick={() => setShowGenerateModal(true)}
@@ -125,7 +139,44 @@ export default function ApiKeysPage() {
 
             <div className="bg-white border border-[#e3e8ef] rounded-lg overflow-hidden">
                 {loading ? (
-                    <div className="p-8 text-center text-[#425466]">Loading...</div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-[#f7fafc] border-b border-[#e3e8ef]">
+                                <tr>
+                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
+                                        Name
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
+                                        Status
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
+                                        Created
+                                    </th>
+                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#e3e8ef]">
+                                {[...Array(3)].map((_, i) => (
+                                    <tr key={i}>
+                                        <td className="px-6 py-4">
+                                            <div className="h-5 w-40 bg-gray-200 rounded animate-pulse" />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-6 w-16 bg-gray-200 rounded-full animate-pulse" />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 ) : apiKeys.length === 0 ? (
                     <div className="p-8 text-center">
                         <p className="text-[15px] text-[#425466] mb-4">
@@ -158,7 +209,7 @@ export default function ApiKeysPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#e3e8ef]">
-                                {apiKeys.map((apiKey) => (
+                                {currentItems.map((apiKey) => (
                                     <tr
                                         key={apiKey.id}
                                         className="hover:bg-[#f7fafc] transition-colors"
@@ -178,7 +229,13 @@ export default function ApiKeysPage() {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-[13px] text-[#425466]">
-                                            {new Date(apiKey.created_at).toLocaleDateString()}
+                                            {apiKey.created_at
+                                                ? new Date(apiKey.created_at).toLocaleDateString('en-US', {
+                                                    year: 'numeric',
+                                                    month: 'short',
+                                                    day: 'numeric',
+                                                })
+                                                : 'N/A'}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-3">
@@ -206,6 +263,60 @@ export default function ApiKeysPage() {
                     </div>
                 )}
             </div>
+
+            {/* Pagination */}
+            {!loading && apiKeys.length > itemsPerPage && (
+                <div className="mt-6 flex items-center justify-between">
+                    <p className="text-[13px] text-[#425466]">
+                        Showing {startIndex + 1} to {Math.min(endIndex, apiKeys.length)} of{' '}
+                        {apiKeys.length} results
+                    </p>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                            className="px-3 py-2 text-[13px] font-medium text-[#425466] bg-white border border-[#e3e8ef] rounded-md hover:border-[#635bff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Previous
+                        </button>
+                        {[...Array(totalPages)].map((_, i) => {
+                            const pageNumber = i + 1
+                            // Show first page, last page, current page, and pages around current
+                            if (
+                                pageNumber === 1 ||
+                                pageNumber === totalPages ||
+                                (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                            ) {
+                                return (
+                                    <button
+                                        key={pageNumber}
+                                        onClick={() => setCurrentPage(pageNumber)}
+                                        className={`px-3 py-2 text-[13px] font-medium rounded-md transition-colors ${currentPage === pageNumber
+                                            ? 'bg-[#635bff] text-white'
+                                            : 'text-[#425466] bg-white border border-[#e3e8ef] hover:border-[#635bff]'
+                                            }`}
+                                    >
+                                        {pageNumber}
+                                    </button>
+                                )
+                            } else if (
+                                pageNumber === currentPage - 2 ||
+                                pageNumber === currentPage + 2
+                            ) {
+                                return <span key={pageNumber} className="px-2 text-[#425466]">...</span>
+                            }
+                            return null
+                        })}
+                        <button
+                            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                            className="px-3 py-2 text-[13px] font-medium text-[#425466] bg-white border border-[#e3e8ef] rounded-md hover:border-[#635bff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Next
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Generate Key Modal */}
             {showGenerateModal && (
