@@ -20,6 +20,9 @@ export default function ApiKeysPage() {
     const [newKeyName, setNewKeyName] = useState('')
     const [showGenerateModal, setShowGenerateModal] = useState(false)
     const [newlyGeneratedKey, setNewlyGeneratedKey] = useState<string | null>(null)
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [showCopySuccess, setShowCopySuccess] = useState(false)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
 
@@ -47,7 +50,8 @@ export default function ApiKeysPage() {
 
     const generateApiKey = async () => {
         if (!newKeyName.trim()) {
-            alert('Please enter a name for the API key')
+            setErrorMessage('Please enter a name for the API key')
+            setShowErrorModal(true)
             return
         }
 
@@ -71,9 +75,13 @@ export default function ApiKeysPage() {
         })
 
         if (!error) {
+            setShowGenerateModal(false)
             setNewlyGeneratedKey(newKey)
             setNewKeyName('')
             fetchApiKeys()
+        } else {
+            setErrorMessage('Failed to generate API key. Please try again.')
+            setShowErrorModal(true)
         }
         setGenerating(false)
     }
@@ -96,6 +104,8 @@ export default function ApiKeysPage() {
 
     const copyToClipboard = (key: string) => {
         navigator.clipboard.writeText(key)
+        setShowCopySuccess(true)
+        setTimeout(() => setShowCopySuccess(false), 2000)
     }
 
     const closeModal = () => {
@@ -360,6 +370,26 @@ export default function ApiKeysPage() {
                 </div>
             )}
 
+            {/* Error Modal */}
+            {showErrorModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h2 className="text-[20px] font-semibold text-[#0a2540] mb-2">
+                            Error
+                        </h2>
+                        <p className="text-[14px] text-[#425466] mb-6">
+                            {errorMessage}
+                        </p>
+                        <button
+                            onClick={() => setShowErrorModal(false)}
+                            className="w-full px-4 py-2 text-[14px] font-medium text-white bg-[#635bff] hover:bg-[#0a2540] rounded-md transition-colors"
+                        >
+                            OK
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Key Reveal Modal */}
             {newlyGeneratedKey && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -378,13 +408,10 @@ export default function ApiKeysPage() {
                         </div>
                         <div className="flex gap-3">
                             <button
-                                onClick={() => {
-                                    copyToClipboard(newlyGeneratedKey)
-                                    alert('API key copied to clipboard!')
-                                }}
+                                onClick={() => copyToClipboard(newlyGeneratedKey)}
                                 className="flex-1 px-4 py-2 text-[14px] font-medium text-white bg-[#635bff] hover:bg-[#0a2540] rounded-md transition-colors"
                             >
-                                Copy to clipboard
+                                {showCopySuccess ? 'Copied!' : 'Copy to clipboard'}
                             </button>
                             <button
                                 onClick={closeKeyRevealModal}
