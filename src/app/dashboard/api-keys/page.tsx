@@ -23,6 +23,8 @@ export default function ApiKeysPage() {
     const [showErrorModal, setShowErrorModal] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const [showCopySuccess, setShowCopySuccess] = useState(false)
+    const [showConfirmModal, setShowConfirmModal] = useState(false)
+    const [confirmAction, setConfirmAction] = useState<{ type: 'revoke' | 'delete', id: string } | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
     const itemsPerPage = 10
 
@@ -86,20 +88,33 @@ export default function ApiKeysPage() {
         setGenerating(false)
     }
 
-    const revokeApiKey = async (id: string) => {
-        if (!confirm('Are you sure you want to revoke this API key?')) {
-            return
+    const handleRevokeClick = (id: string) => {
+        setConfirmAction({ type: 'revoke', id })
+        setShowConfirmModal(true)
+    }
+
+    const handleDeleteClick = (id: string) => {
+        setConfirmAction({ type: 'delete', id })
+        setShowConfirmModal(true)
+    }
+
+    const handleConfirm = async () => {
+        if (!confirmAction) return
+
+        if (confirmAction.type === 'revoke') {
+            await supabase.from('api_keys').update({ revoked: true }).eq('id', confirmAction.id)
+        } else {
+            await supabase.from('api_keys').delete().eq('id', confirmAction.id)
         }
-        await supabase.from('api_keys').update({ revoked: true }).eq('id', id)
+
+        setShowConfirmModal(false)
+        setConfirmAction(null)
         fetchApiKeys()
     }
 
-    const deleteApiKey = async (id: string) => {
-        if (!confirm('Are you sure you want to permanently delete this API key? This action cannot be undone.')) {
-            return
-        }
-        await supabase.from('api_keys').delete().eq('id', id)
-        fetchApiKeys()
+    const handleCancelConfirm = () => {
+        setShowConfirmModal(false)
+        setConfirmAction(null)
     }
 
     const copyToClipboard = (key: string) => {
@@ -251,14 +266,14 @@ export default function ApiKeysPage() {
                                             <div className="flex gap-3">
                                                 {!apiKey.revoked ? (
                                                     <button
-                                                        onClick={() => revokeApiKey(apiKey.id)}
+                                                        onClick={() => handleRevokeClick(apiKey.id)}
                                                         className="text-[13px] text-red-600 hover:text-red-700 transition-colors font-medium"
                                                     >
                                                         Revoke
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        onClick={() => deleteApiKey(apiKey.id)}
+                                                        onClick={() => handleDeleteClick(apiKey.id)}
                                                         className="text-[13px] text-red-600 hover:text-red-700 transition-colors font-medium"
                                                     >
                                                         Delete
@@ -361,6 +376,36 @@ export default function ApiKeysPage() {
                             </button>
                             <button
                                 onClick={closeModal}
+                                className="flex-1 px-4 py-2 text-[14px] font-medium text-[#425466] bg-white border border-[#e3e8ef] hover:border-[#635bff] rounded-md transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirm Modal */}
+            {showConfirmModal && confirmAction && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                        <h2 className="text-[20px] font-semibold text-[#0a2540] mb-2">
+                            {confirmAction.type === 'revoke' ? 'Revoke API key' : 'Delete API key'}
+                        </h2>
+                        <p className="text-[14px] text-[#425466] mb-6">
+                            {confirmAction.type === 'revoke'
+                                ? 'Are you sure you want to revoke this API key? It will no longer work for API requests.'
+                                : 'Are you sure you want to permanently delete this API key? This action cannot be undone.'}
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleConfirm}
+                                className="flex-1 px-4 py-2 text-[14px] font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                            >
+                                {confirmAction.type === 'revoke' ? 'Revoke' : 'Delete'}
+                            </button>
+                            <button
+                                onClick={handleCancelConfirm}
                                 className="flex-1 px-4 py-2 text-[14px] font-medium text-[#425466] bg-white border border-[#e3e8ef] hover:border-[#635bff] rounded-md transition-colors"
                             >
                                 Cancel
