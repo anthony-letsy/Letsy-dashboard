@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Building2, Clock, CheckCircle2, XCircle } from 'lucide-react'
+import { Building2, Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Users, Calendar, FileText } from 'lucide-react'
 
 type Formation = {
     id: string
@@ -22,7 +22,12 @@ export default function FormationsPage() {
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'failed'>('all')
     const [currentPage, setCurrentPage] = useState(1)
+    const [expandedId, setExpandedId] = useState<string | null>(null)
     const itemsPerPage = 10
+
+    const toggleExpand = (id: string) => {
+        setExpandedId(prev => prev === id ? null : id)
+    }
 
     useEffect(() => {
         fetchFormations()
@@ -179,37 +184,18 @@ export default function FormationsPage() {
 
             <div className="bg-white border border-[#e3e8ef] rounded-lg overflow-hidden">
                 {loading ? (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-[#f7fafc] border-b border-[#e3e8ef]">
-                                <tr>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Company
-                                    </th>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Status
-                                    </th>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Created
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#e3e8ef]">
-                                {[...Array(5)].map((_, i) => (
-                                    <tr key={i}>
-                                        <td className="px-6 py-4">
-                                            <div className="h-5 w-48 bg-gray-200 rounded animate-pulse" />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-6 w-20 bg-gray-200 rounded-full animate-pulse" />
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="divide-y divide-[#e3e8ef]">
+                        {[...Array(5)].map((_, i) => (
+                            <div key={i} className="p-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex-1">
+                                        <div className="h-5 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+                                        <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+                                    </div>
+                                    <div className="h-6 w-20 bg-gray-200 rounded-full animate-pulse" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : filteredFormations.length === 0 ? (
                     <div className="p-8 text-center">
@@ -218,53 +204,183 @@ export default function FormationsPage() {
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead className="bg-[#f7fafc] border-b border-[#e3e8ef]">
-                                <tr>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Company
-                                    </th>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Status
-                                    </th>
-                                    <th className="text-left px-6 py-3 text-[13px] font-medium text-[#425466]">
-                                        Created
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-[#e3e8ef]">
-                                {currentItems.map((formation) => (
-                                    <tr
-                                        key={formation.id}
-                                        className="hover:bg-[#f7fafc] transition-colors"
+                    <div className="divide-y divide-[#e3e8ef]">
+                        {currentItems.map((formation) => {
+                            const isExpanded = expandedId === formation.id
+                            const company = formation.payload?.company || {}
+
+                            return (
+                                <div key={formation.id} className="transition-colors">
+                                    {/* Accordion Header */}
+                                    <button
+                                        onClick={() => toggleExpand(formation.id)}
+                                        className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#f7fafc] transition-colors text-left"
                                     >
-                                        <td className="px-6 py-4 text-[14px] text-[#0a2540] font-medium">
-                                            {formation.payload?.company?.name || 'N/A'}
-                                        </td>
-                                        <td className="px-6 py-4">
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br from-[#635bff]/10 to-[#0099cc]/10 flex items-center justify-center">
+                                                <Building2 className="w-5 h-5 text-[#635bff]" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-[14px] font-medium text-[#0a2540] truncate">
+                                                    {company.name ? String(company.name) : 'N/A'}
+                                                </h3>
+                                                <p className="text-[13px] text-[#425466] mt-0.5">
+                                                    {new Date(formation.created_at).toLocaleDateString('en-US', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
                                             <span
-                                                className={`inline-flex px-2 py-1 text-[11px] font-medium rounded-full ${getStatusColor(
+                                                className={`inline-flex px-2.5 py-1 text-[11px] font-medium rounded-full ${getStatusColor(
                                                     formation.status
                                                 )}`}
                                             >
                                                 {formation.status.charAt(0).toUpperCase() +
                                                     formation.status.slice(1)}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#425466]">
-                                            {new Date(
-                                                formation.created_at
-                                            ).toLocaleDateString('en-US', {
-                                                year: 'numeric',
-                                                month: 'short',
-                                                day: 'numeric',
-                                            })}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                            {isExpanded ? (
+                                                <ChevronUp className="w-5 h-5 text-[#425466] flex-shrink-0" />
+                                            ) : (
+                                                <ChevronDown className="w-5 h-5 text-[#425466] flex-shrink-0" />
+                                            )}
+                                        </div>
+                                    </button>
+
+                                    {/* Accordion Content */}
+                                    {isExpanded && (
+                                        <div className="px-6 pb-6 bg-[#f7fafc]/50">
+                                            <div className="bg-white border border-[#e3e8ef] rounded-lg p-5">
+                                                <h4 className="text-[13px] font-semibold text-[#0a2540] mb-4 flex items-center gap-2">
+                                                    <FileText className="w-4 h-4 text-[#635bff]" />
+                                                    Company Details
+                                                </h4>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {/* Company Name */}
+                                                    {company.name && (
+                                                        <div className="flex items-start gap-3">
+                                                            <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Company Name
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] font-medium break-words">
+                                                                    {String(company.name)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Registration Number */}
+                                                    {company.registration_number && (
+                                                        <div className="flex items-start gap-3">
+                                                            <FileText className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Registration Number
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] font-medium break-words">
+                                                                    {String(company.registration_number)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Address */}
+                                                    {company.address && (
+                                                        <div className="flex items-start gap-3">
+                                                            <MapPin className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Address
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] break-words">
+                                                                    {typeof company.address === 'string'
+                                                                        ? String(company.address)
+                                                                        : JSON.stringify(company.address)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Company Type */}
+                                                    {company.type && (
+                                                        <div className="flex items-start gap-3">
+                                                            <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Company Type
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] break-words">
+                                                                    {String(company.type)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Directors */}
+                                                    {company.directors && (
+                                                        <div className="flex items-start gap-3 md:col-span-2">
+                                                            <Users className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Directors
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] break-words">
+                                                                    {Array.isArray(company.directors)
+                                                                        ? company.directors.map((d: unknown) =>
+                                                                            typeof d === 'string' ? d : (d as Record<string, unknown>)?.name ? String((d as Record<string, unknown>).name) : JSON.stringify(d)
+                                                                        ).join(', ')
+                                                                        : JSON.stringify(company.directors)}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Incorporation Date */}
+                                                    {company.incorporation_date && (
+                                                        <div className="flex items-start gap-3">
+                                                            <Calendar className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
+                                                            <div className="min-w-0">
+                                                                <p className="text-[11px] text-[#425466] uppercase tracking-wide font-medium mb-1">
+                                                                    Incorporation Date
+                                                                </p>
+                                                                <p className="text-[13px] text-[#0a2540] break-words">
+                                                                    {new Date(String(company.incorporation_date)).toLocaleDateString('en-US', {
+                                                                        year: 'numeric',
+                                                                        month: 'long',
+                                                                        day: 'numeric',
+                                                                    })}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Additional payload data */}
+                                                {Object.keys(company).length > 0 && (
+                                                    <div className="mt-4 pt-4 border-t border-[#e3e8ef]">
+                                                        <details className="group">
+                                                            <summary className="text-[11px] text-[#425466] uppercase tracking-wide font-medium cursor-pointer hover:text-[#635bff] transition-colors flex items-center gap-2">
+                                                                <span>View Full Payload</span>
+                                                                <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                                                            </summary>
+                                                            <pre className="mt-3 p-3 bg-[#f7fafc] border border-[#e3e8ef] rounded text-[11px] text-[#0a2540] overflow-x-auto">
+                                                                {JSON.stringify(formation.payload, null, 2)}
+                                                            </pre>
+                                                        </details>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )
+                        })}
                     </div>
                 )}
             </div>
