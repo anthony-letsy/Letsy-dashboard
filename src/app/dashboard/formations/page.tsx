@@ -261,7 +261,7 @@ export default function FormationsPage() {
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {/* Company Name */}
-                                                    {company.name && (
+                                                    {company.name && typeof company.name === 'string' && (
                                                         <div className="flex items-start gap-3">
                                                             <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -269,14 +269,14 @@ export default function FormationsPage() {
                                                                     Company Name
                                                                 </p>
                                                                 <p className="text-[13px] text-[#0a2540] font-medium break-words">
-                                                                    {String(company.name)}
+                                                                    {company.name}
                                                                 </p>
                                                             </div>
                                                         </div>
                                                     )}
 
                                                     {/* Registration Number */}
-                                                    {company.registration_number && (
+                                                    {company.registration_number && (typeof company.registration_number === 'string' || typeof company.registration_number === 'number') && (
                                                         <div className="flex items-start gap-3">
                                                             <FileText className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -300,7 +300,7 @@ export default function FormationsPage() {
                                                                 </p>
                                                                 <p className="text-[13px] text-[#0a2540] break-words">
                                                                     {typeof company.address === 'string'
-                                                                        ? String(company.address)
+                                                                        ? company.address
                                                                         : JSON.stringify(company.address)}
                                                                 </p>
                                                             </div>
@@ -308,7 +308,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Company Type */}
-                                                    {company.type && (
+                                                    {company.type && typeof company.type === 'string' && (
                                                         <div className="flex items-start gap-3">
                                                             <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -316,7 +316,7 @@ export default function FormationsPage() {
                                                                     Company Type
                                                                 </p>
                                                                 <p className="text-[13px] text-[#0a2540] break-words">
-                                                                    {String(company.type)}
+                                                                    {company.type}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -342,7 +342,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Incorporation Date */}
-                                                    {company.incorporation_date && (
+                                                    {company.incorporation_date && (typeof company.incorporation_date === 'string' || typeof company.incorporation_date === 'number') && (
                                                         <div className="flex items-start gap-3">
                                                             <Calendar className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
