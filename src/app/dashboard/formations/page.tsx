@@ -261,7 +261,7 @@ export default function FormationsPage() {
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     {/* Company Name */}
-                                                    {company.name && typeof company.name === 'string' && (
+                                                    {typeof company.name === 'string' && company.name && (
                                                         <div className="flex items-start gap-3">
                                                             <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -276,7 +276,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Registration Number */}
-                                                    {company.registration_number && (typeof company.registration_number === 'string' || typeof company.registration_number === 'number') && (
+                                                    {(typeof company.registration_number === 'string' || typeof company.registration_number === 'number') && (
                                                         <div className="flex items-start gap-3">
                                                             <FileText className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -291,7 +291,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Address */}
-                                                    {company.address && (
+                                                    {company.address !== undefined && (
                                                         <div className="flex items-start gap-3">
                                                             <MapPin className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -308,7 +308,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Company Type */}
-                                                    {company.type && typeof company.type === 'string' && (
+                                                    {typeof company.type === 'string' && company.type && (
                                                         <div className="flex items-start gap-3">
                                                             <Building2 className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
@@ -323,7 +323,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Directors */}
-                                                    {company.directors && (
+                                                    {company.directors !== undefined && (
                                                         <div className="flex items-start gap-3 md:col-span-2">
                                                             <Users className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0 flex-1">
@@ -342,7 +342,7 @@ export default function FormationsPage() {
                                                     )}
 
                                                     {/* Incorporation Date */}
-                                                    {company.incorporation_date && (typeof company.incorporation_date === 'string' || typeof company.incorporation_date === 'number') && (
+                                                    {(typeof company.incorporation_date === 'string' || typeof company.incorporation_date === 'number') && (
                                                         <div className="flex items-start gap-3">
                                                             <Calendar className="w-4 h-4 text-[#425466] mt-0.5 flex-shrink-0" />
                                                             <div className="min-w-0">
