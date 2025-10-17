@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Building2, Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Users, Calendar, FileText } from 'lucide-react'
+import { Building2, Clock, CheckCircle2, XCircle, ChevronDown, ChevronUp, MapPin, Users, Calendar, FileText, Search } from 'lucide-react'
 
 type Formation = {
     id: string
@@ -21,6 +21,7 @@ export default function FormationsPage() {
     const [formations, setFormations] = useState<Formation[]>([])
     const [loading, setLoading] = useState(true)
     const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'failed'>('all')
+    const [searchQuery, setSearchQuery] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [expandedId, setExpandedId] = useState<string | null>(null)
     const itemsPerPage = 10
@@ -51,10 +52,21 @@ export default function FormationsPage() {
         setLoading(false)
     }
 
-    const filteredFormations =
+    // Apply status filter
+    const statusFilteredFormations =
         filter === 'all'
             ? formations
             : formations.filter((f) => f.status === filter)
+
+    // Apply search filter
+    const filteredFormations = statusFilteredFormations.filter((formation) => {
+        if (!searchQuery.trim()) return true
+        const companyName = formation.payload?.company?.name
+        if (typeof companyName === 'string') {
+            return companyName.toLowerCase().includes(searchQuery.toLowerCase())
+        }
+        return false
+    })
 
     // Calculate counts for each status
     const statusCounts = {
@@ -70,10 +82,10 @@ export default function FormationsPage() {
     const endIndex = startIndex + itemsPerPage
     const currentItems = filteredFormations.slice(startIndex, endIndex)
 
-    // Reset to page 1 when filter changes
+    // Reset to page 1 when filter or search changes
     useEffect(() => {
         setCurrentPage(1)
-    }, [filter])
+    }, [filter, searchQuery])
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -104,82 +116,161 @@ export default function FormationsPage() {
                 </div>
             </div>
 
-            <div className="mb-6 flex flex-wrap gap-3">
-                <button
-                    onClick={() => setFilter('all')}
-                    className={`group flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-all ${filter === 'all'
-                        ? 'bg-[#635bff] text-white shadow-md'
-                        : 'bg-white text-[#425466] border border-[#e3e8ef] hover:border-[#635bff] hover:shadow-sm'
-                        }`}
-                >
-                    <Building2 className={`w-4 h-4 ${filter === 'all' ? 'text-white' : 'text-[#635bff]'}`} />
-                    <span>All</span>
-                    <span
-                        className={`ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full ${filter === 'all'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-gray-100 text-[#425466] group-hover:bg-[#635bff]/10'
-                            }`}
-                    >
-                        {statusCounts.all}
-                    </span>
-                </button>
+            {/* Search and Filter Section */}
+            <div className="mb-6 bg-white border border-[#e3e8ef] rounded-xl p-5 shadow-sm">
+                <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                    {/* Search Bar */}
+                    <div className="flex-1 w-full lg:w-auto">
+                        <div className="relative group">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8896a8] group-focus-within:text-[#635bff] transition-colors" />
+                            <input
+                                type="text"
+                                placeholder="Search companies..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-11 pr-10 py-3 text-[14px] bg-[#f7fafc] border border-[#e3e8ef] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#635bff] focus:border-transparent focus:bg-white transition-all placeholder:text-[#8896a8]"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8896a8] hover:text-[#0a2540] transition-colors"
+                                    aria-label="Clear search"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
 
-                <button
-                    onClick={() => setFilter('pending')}
-                    className={`group flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-all ${filter === 'pending'
-                        ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white shadow-md'
-                        : 'bg-white text-[#425466] border border-[#e3e8ef] hover:border-yellow-500 hover:shadow-sm'
-                        }`}
-                >
-                    <Clock className={`w-4 h-4 ${filter === 'pending' ? 'text-white' : 'text-yellow-600'}`} />
-                    <span>Pending</span>
-                    <span
-                        className={`ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full ${filter === 'pending'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-yellow-50 text-yellow-700 group-hover:bg-yellow-100'
-                            }`}
-                    >
-                        {statusCounts.pending}
-                    </span>
-                </button>
+                    {/* Divider */}
+                    <div className="hidden lg:block w-px h-10 bg-[#e3e8ef]" />
 
-                <button
-                    onClick={() => setFilter('verified')}
-                    className={`group flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-all ${filter === 'verified'
-                        ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md'
-                        : 'bg-white text-[#425466] border border-[#e3e8ef] hover:border-green-500 hover:shadow-sm'
-                        }`}
-                >
-                    <CheckCircle2 className={`w-4 h-4 ${filter === 'verified' ? 'text-white' : 'text-green-600'}`} />
-                    <span>Verified</span>
-                    <span
-                        className={`ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full ${filter === 'verified'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-green-50 text-green-700 group-hover:bg-green-100'
-                            }`}
-                    >
-                        {statusCounts.verified}
-                    </span>
-                </button>
+                    {/* Status Filters */}
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setFilter('all')}
+                            className={`relative flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-lg transition-all ${filter === 'all'
+                                ? 'bg-[#635bff] text-white shadow-sm scale-105'
+                                : 'bg-[#f7fafc] text-[#425466] hover:bg-[#e3e8ef] hover:scale-105'
+                                }`}
+                        >
+                            <Building2 className={`w-3.5 h-3.5 ${filter === 'all' ? 'text-white' : 'text-[#635bff]'}`} />
+                            <span>All</span>
+                            <span
+                                className={`min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${filter === 'all'
+                                    ? 'bg-white/25 text-white'
+                                    : 'bg-white text-[#635bff]'
+                                    }`}
+                            >
+                                {statusCounts.all}
+                            </span>
+                        </button>
 
-                <button
-                    onClick={() => setFilter('failed')}
-                    className={`group flex items-center gap-2 px-4 py-2.5 text-[13px] font-medium rounded-lg transition-all ${filter === 'failed'
-                        ? 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md'
-                        : 'bg-white text-[#425466] border border-[#e3e8ef] hover:border-red-500 hover:shadow-sm'
-                        }`}
-                >
-                    <XCircle className={`w-4 h-4 ${filter === 'failed' ? 'text-white' : 'text-red-600'}`} />
-                    <span>Failed</span>
-                    <span
-                        className={`ml-1 px-2 py-0.5 text-[11px] font-semibold rounded-full ${filter === 'failed'
-                            ? 'bg-white/20 text-white'
-                            : 'bg-red-50 text-red-700 group-hover:bg-red-100'
-                            }`}
-                    >
-                        {statusCounts.failed}
-                    </span>
-                </button>
+                        <button
+                            onClick={() => setFilter('pending')}
+                            className={`relative flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-lg transition-all ${filter === 'pending'
+                                ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white shadow-sm scale-105'
+                                : 'bg-[#f7fafc] text-[#425466] hover:bg-yellow-50 hover:scale-105'
+                                }`}
+                        >
+                            <Clock className={`w-3.5 h-3.5 ${filter === 'pending' ? 'text-white' : 'text-yellow-600'}`} />
+                            <span>Pending</span>
+                            <span
+                                className={`min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${filter === 'pending'
+                                    ? 'bg-white/25 text-white'
+                                    : 'bg-yellow-100 text-yellow-700'
+                                    }`}
+                            >
+                                {statusCounts.pending}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setFilter('verified')}
+                            className={`relative flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-lg transition-all ${filter === 'verified'
+                                ? 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-sm scale-105'
+                                : 'bg-[#f7fafc] text-[#425466] hover:bg-green-50 hover:scale-105'
+                                }`}
+                        >
+                            <CheckCircle2 className={`w-3.5 h-3.5 ${filter === 'verified' ? 'text-white' : 'text-green-600'}`} />
+                            <span>Verified</span>
+                            <span
+                                className={`min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${filter === 'verified'
+                                    ? 'bg-white/25 text-white'
+                                    : 'bg-green-100 text-green-700'
+                                    }`}
+                            >
+                                {statusCounts.verified}
+                            </span>
+                        </button>
+
+                        <button
+                            onClick={() => setFilter('failed')}
+                            className={`relative flex items-center gap-1.5 px-3 py-2 text-[12px] font-medium rounded-lg transition-all ${filter === 'failed'
+                                ? 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-sm scale-105'
+                                : 'bg-[#f7fafc] text-[#425466] hover:bg-red-50 hover:scale-105'
+                                }`}
+                        >
+                            <XCircle className={`w-3.5 h-3.5 ${filter === 'failed' ? 'text-white' : 'text-red-600'}`} />
+                            <span>Failed</span>
+                            <span
+                                className={`min-w-[20px] h-5 px-1.5 flex items-center justify-center text-[10px] font-bold rounded-full ${filter === 'failed'
+                                    ? 'bg-white/25 text-white'
+                                    : 'bg-red-100 text-red-700'
+                                    }`}
+                            >
+                                {statusCounts.failed}
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Active Filters Indicator */}
+                {(searchQuery || filter !== 'all') && (
+                    <div className="mt-4 pt-4 border-t border-[#e3e8ef] flex items-center gap-2 flex-wrap">
+                        <span className="text-[11px] text-[#8896a8] font-medium uppercase tracking-wide">
+                            Active Filters:
+                        </span>
+                        {searchQuery && (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#635bff]/10 text-[#635bff] text-[11px] font-medium rounded-full">
+                                <Search className="w-3 h-3" />
+                                {searchQuery}
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="hover:bg-white/50 rounded-full p-0.5 transition-colors"
+                                >
+                                    <XCircle className="w-3 h-3" />
+                                </button>
+                            </span>
+                        )}
+                        {filter !== 'all' && (
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full ${filter === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                    filter === 'verified' ? 'bg-green-100 text-green-700' :
+                                        filter === 'failed' ? 'bg-red-100 text-red-700' : ''
+                                }`}>
+                                {filter === 'pending' && <Clock className="w-3 h-3" />}
+                                {filter === 'verified' && <CheckCircle2 className="w-3 h-3" />}
+                                {filter === 'failed' && <XCircle className="w-3 h-3" />}
+                                {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                                <button
+                                    onClick={() => setFilter('all')}
+                                    className="hover:bg-white/50 rounded-full p-0.5 transition-colors"
+                                >
+                                    <XCircle className="w-3 h-3" />
+                                </button>
+                            </span>
+                        )}
+                        <button
+                            onClick={() => {
+                                setSearchQuery('')
+                                setFilter('all')
+                            }}
+                            className="ml-auto text-[11px] text-[#8896a8] hover:text-[#635bff] font-medium transition-colors"
+                        >
+                            Clear all
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="bg-white border border-[#e3e8ef] rounded-lg overflow-hidden">
@@ -198,10 +289,37 @@ export default function FormationsPage() {
                         ))}
                     </div>
                 ) : filteredFormations.length === 0 ? (
-                    <div className="p-8 text-center">
-                        <p className="text-[15px] text-[#425466]">
-                            No formations found
+                    <div className="p-12 text-center">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#f7fafc] mb-4">
+                            {searchQuery ? (
+                                <Search className="w-8 h-8 text-[#8896a8]" />
+                            ) : (
+                                <Building2 className="w-8 h-8 text-[#8896a8]" />
+                            )}
+                        </div>
+                        <h3 className="text-[16px] font-semibold text-[#0a2540] mb-2">
+                            {searchQuery ? 'No results found' : 'No formations found'}
+                        </h3>
+                        <p className="text-[14px] text-[#425466] max-w-sm mx-auto">
+                            {searchQuery ? (
+                                <>
+                                    No companies match &ldquo;<span className="font-medium text-[#0a2540]">{searchQuery}</span>&rdquo;.
+                                    Try adjusting your search.
+                                </>
+                            ) : filter !== 'all' ? (
+                                `No ${filter} formations at the moment.`
+                            ) : (
+                                'No company formations have been created yet.'
+                            )}
                         </p>
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="mt-4 px-4 py-2 text-[13px] font-medium text-[#635bff] hover:text-[#4c3fe4] transition-colors"
+                            >
+                                Clear search
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="divide-y divide-[#e3e8ef]">
